@@ -14,8 +14,6 @@ RUN npm install
 # add the app
 COPY . .
 
-RUN npm run build
-
 # Expose development port
 EXPOSE 3000
 
