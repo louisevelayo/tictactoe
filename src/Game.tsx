@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import Square from "./Square";
 
+type Scores = {
+  [key: string]: number;
+};
+
 const INITIAL_GAME_STATE = ["", "", "", "", "", "", "", "", ""];
+const INITIAL_SCORES: Scores = { X: 0, O: 0 };
 
 const WINNING_COMBOS = [
   [0, 1, 2],
@@ -15,20 +20,50 @@ const WINNING_COMBOS = [
 ];
 
 function Game() {
+  // Array destructuring syntax.
   const [gameState, setGameState] = useState(INITIAL_GAME_STATE);
   const [currentPlayer, setCurrentPlayer] = useState("X");
+  const [scores, setScores] = useState(INITIAL_SCORES);
 
   useEffect(() => {
+    const storedScores = localStorage.getItem("scores");
+    if (storedScores) {
+      setScores(JSON.parse(storedScores));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (gameState === INITIAL_GAME_STATE) {
+      return;
+    }
     checkForWinner();
   }, [gameState]);
+
+  const resetBoard = () => setGameState(INITIAL_GAME_STATE);
+
+  const handleWin = () => {
+    window.alert(`Congrats player ${currentPlayer}! You are the winner!`);
+
+    const newPlayerScore = scores[currentPlayer] + 1;
+    const newScores = { ...scores };
+    newScores[currentPlayer] = newPlayerScore;
+    setScores(newScores);
+    localStorage.setItem("scores", JSON.stringify(newScores));
+    resetBoard();
+  };
+
+  const handleDraw = () => {
+    window.alert("The game ended in a draw");
+    resetBoard();
+  };
 
   const checkForWinner = () => {
     let roundWon = false;
 
     for (let i = 0; i < WINNING_COMBOS.length; i++) {
       const winCombo = WINNING_COMBOS[i];
-      
-      // this takes the value from the grid that is denoted by 
+
+      // this takes the value from the grid that is denoted by
       // the values in an array in the winning combos array
       let a = gameState[winCombo[0]];
       let b = gameState[winCombo[1]];
@@ -47,12 +82,12 @@ function Game() {
     }
 
     if (roundWon) {
-      window.alert(`Congrats player ${currentPlayer}! You are the winner!`);
+      setTimeout(() => handleWin(), 500);
       return;
     }
 
     if (!gameState.includes("")) {
-      window.alert("The game ended in a draw");
+      setTimeout(() => handleDraw(), 500);
       return;
     }
 
@@ -71,6 +106,7 @@ function Game() {
       return;
     }
 
+    //creates a new array newValues[] in memory with the same contents as game state.
     const newValues = [...gameState];
     newValues[cellIndex] = currentPlayer;
     setGameState(newValues);
@@ -92,7 +128,17 @@ function Game() {
           ))}
         </div>
 
-        <div>Score Goes Here</div>
+        <div className="mx-auto w-96 text-2xl text-serif text-white mt-5">
+          <p>
+            Next player: <span>{currentPlayer}</span>
+          </p>
+          <p>
+            Player X wins: <span>{scores["X"]}</span>
+          </p>
+          <p>
+            Player O wins: <span>{scores["O"]}</span>
+          </p>
+        </div>
       </div>
     </div>
   );
